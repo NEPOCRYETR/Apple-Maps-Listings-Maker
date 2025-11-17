@@ -240,14 +240,24 @@ def generate_fallback_addresses(city, state, count):
         "Market Street", "Broadway", "Center Street", "First Avenue", "Second Street"
     ]
 
+    # Base coordinates for rough US location (will be randomized)
+    # This ensures each fallback address has unique coordinates
+    base_lat = random.uniform(30.0, 48.0)  # Rough continental US latitude range
+    base_lon = random.uniform(-125.0, -70.0)  # Rough continental US longitude range
+
     for i in range(count):
         street = random.choice(street_names)
         number = random.randint(100, 9999)
         zipcode = random.randint(10000, 99999)
 
+        # Generate unique coordinates for each address
+        # Add small random offset to ensure uniqueness
+        lat = base_lat + random.uniform(-0.5, 0.5) + (i * 0.001)
+        lon = base_lon + random.uniform(-0.5, 0.5) + (i * 0.001)
+
         locations.append({
-            'lat': 0,
-            'lon': 0,
+            'lat': lat,
+            'lon': lon,
             'address': f"{number} {street}, {city}, {state} {zipcode}"
         })
 
