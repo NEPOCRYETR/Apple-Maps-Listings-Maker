@@ -4,9 +4,10 @@ A web application that generates commercial business listings with real addresse
 
 ## Features
 
+- **Service-Specific Business Names**: Generate names tailored to specific services (Locksmith, Chimney Cleaning, Garage Door, Sliding Doors, Towing Service, Air Duct Cleaning)
 - **Modern Web Dashboard**: Clean, responsive UI with real-time progress tracking
 - **Real Commercial Addresses**: Fetches actual commercial locations from OpenStreetMap
-- **Anonymous Business Names**: Generates realistic but anonymous business names
+- **Anonymous Business Names**: Generates realistic but anonymous business names matching the selected service
 - **Bulk Generation**: Create up to 100 listings at once
 - **CSV Export**: Download results as CSV for easy data analysis
 - **Progress Tracking**: Visual feedback during listing generation
@@ -18,6 +19,7 @@ A web application that generates commercial business listings with real addresse
 ## How It Works
 
 1. User inputs:
+   - **Service type** (required: Locksmith, Chimney Cleaning, Garage Door, Sliding Doors, Towing Service, or Air Duct Cleaning)
    - Phone number (will be applied to all listings)
    - City name
    - State name
@@ -27,7 +29,8 @@ A web application that generates commercial business listings with real addresse
    - Queries OpenStreetMap Overpass API for commercial locations
    - Retrieves real commercial addresses (shops, offices, restaurants, etc.)
    - **Checks database for duplicate addresses** and filters them out
-   - Generates unique anonymous business names that haven't been used before
+   - **Generates service-specific business names** (e.g., "24/7 Locksmith Services", "Professional Chimney Sweep")
+   - Ensures names match the selected service type
    - **Saves all data to persistent database** for future duplicate checking
    - Combines data with provided phone number
 
@@ -76,6 +79,13 @@ http://localhost:5000
    - Use "Clear All Data" to reset the database (careful!)
 
 2. **Fill in the form**:
+   - **Select a service type** (required dropdown):
+     - Locksmith
+     - Chimney Cleaning
+     - Garage Door
+     - Sliding Doors
+     - Towing Service
+     - Air Duct Cleaning
    - Enter a phone number (e.g., +1 (555) 123-4567)
    - Enter city name (e.g., New York)
    - Enter state name (e.g., New York)
@@ -106,6 +116,8 @@ http://localhost:5000
 - **Database**: SQLite with contextual connections
 - **Features**:
   - Commercial address fetching
+  - **Service-specific business name generation** with 6 different service types
+  - Each service has unique prefixes, core names, and suffixes
   - Anonymous name generation with uniqueness checking
   - Duplicate prevention for addresses and names
   - Fallback data for API failures
@@ -115,7 +127,7 @@ http://localhost:5000
 ### Database (database.py)
 - **Storage**: SQLite (listings_history.db)
 - **Tables**:
-  - `runs`: Tracks each generation session
+  - `runs`: Tracks each generation session (includes service_type)
   - `used_business_names`: All unique business names ever generated
   - `used_addresses`: All unique addresses ever used (with coordinates)
   - `generated_listings`: Complete history of all listings
@@ -139,8 +151,15 @@ http://localhost:5000
 The application maintains a persistent SQLite database that tracks:
 
 1. **Business Names**: Every generated name is checked against the database before use
-   - 600+ possible unique combinations (26 prefixes × 24 types)
-   - If all combinations exhausted, adds numeric suffix
+   - Service-specific name generation with multiple formats
+   - Thousands of possible unique combinations per service type
+   - Each service has tailored prefixes, core names, and suffixes
+   - Examples:
+     - **Locksmith**: "24/7 Lock & Key Services", "Emergency Locksmith Pros"
+     - **Chimney Cleaning**: "Professional Chimney Sweep", "Master Chimney Services"
+     - **Garage Door**: "Quick Garage Door Repair", "Premier Door Solutions"
+     - **Towing Service**: "Fast Towing & Recovery", "24/7 Roadside Assistance"
+   - If combinations exhausted, adds numeric suffix
    - Guarantees no duplicate names across all runs
 
 2. **Commercial Addresses**: Every address is verified for uniqueness
@@ -162,12 +181,15 @@ Generates business listings with duplicate checking.
 **Request Body**:
 ```json
 {
+  "service_type": "Locksmith",
   "phone_number": "+1 (555) 123-4567",
   "city": "New York",
   "state": "New York",
   "count": 30
 }
 ```
+
+**Note**: `service_type` must be one of: "Locksmith", "Chimney Cleaning", "Garage Door", "Sliding Doors", "Towing Service", "Air Duct Cleaning"
 
 **Response**:
 ```json
@@ -178,7 +200,7 @@ Generates business listings with duplicate checking.
   "listings": [
     {
       "id": 1,
-      "name": "Summit Services",
+      "name": "24/7 Lock & Key Services",
       "address": "123 Main Street, New York, New York 10001",
       "phone": "+1 (555) 123-4567",
       "latitude": 40.7128,
@@ -218,6 +240,7 @@ Returns all previous generation runs.
       "phone_number": "+1 (555) 123-4567",
       "city": "New York",
       "state": "New York",
+      "service_type": "Locksmith",
       "requested_count": 30,
       "generated_count": 30
     }

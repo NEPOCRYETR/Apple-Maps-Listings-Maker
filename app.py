@@ -11,30 +11,89 @@ CORS(app)
 # Initialize database on startup
 db.init_database()
 
-# List of business name prefixes and suffixes for generating anonymous names
-BUSINESS_PREFIXES = [
-    "Summit", "Premier", "Elite", "Grand", "Royal", "Central", "Metro", "Urban",
-    "Downtown", "Main Street", "City", "Capitol", "Plaza", "Gateway", "Harbor",
-    "Riverside", "Parkway", "Highland", "Valley", "Coastal", "Mountain", "Sunrise",
-    "Sunset", "Golden", "Silver", "Diamond", "Platinum", "Prime", "First Rate"
-]
+# Service-specific business name components
+SERVICE_NAMES = {
+    "Locksmith": {
+        "prefixes": ["24/7", "Emergency", "Quick", "Reliable", "Master", "Professional", "Expert",
+                    "Secure", "Swift", "Premier", "Elite", "Trusted", "Advanced", "Precision"],
+        "core": ["Lock & Key", "Locksmith", "Security", "Lock Services", "Key Services",
+                "Lock Solutions", "Security Systems", "Lock & Security"],
+        "suffixes": ["Pros", "Experts", "Services", "Solutions", "Specialists", "Team",
+                    "Company", "Group", "Associates", "Co"]
+    },
+    "Chimney Cleaning": {
+        "prefixes": ["Professional", "Master", "Expert", "Premier", "Elite", "Certified",
+                    "Quality", "Top", "Superior", "Advanced", "Reliable", "Trusted"],
+        "core": ["Chimney Sweep", "Chimney Cleaning", "Chimney Services", "Chimney Care",
+                "Fireplace & Chimney", "Chimney Maintenance", "Chimney Solutions"],
+        "suffixes": ["Pros", "Experts", "Services", "Specialists", "Company", "Team",
+                    "Solutions", "Group", "Associates", "Co"]
+    },
+    "Garage Door": {
+        "prefixes": ["24/7", "Emergency", "Quick", "Reliable", "Professional", "Expert",
+                    "Premier", "Elite", "Precision", "Quality", "Superior", "Advanced"],
+        "core": ["Garage Door", "Garage Door Repair", "Garage Door Services", "Door Solutions",
+                "Overhead Door", "Garage Door Systems", "Door & Opener"],
+        "suffixes": ["Pros", "Experts", "Services", "Repair", "Solutions", "Specialists",
+                    "Company", "Team", "Group", "Co"]
+    },
+    "Sliding Doors": {
+        "prefixes": ["Professional", "Expert", "Premier", "Elite", "Quality", "Precision",
+                    "Custom", "Modern", "Superior", "Advanced", "Reliable", "Master"],
+        "core": ["Sliding Door", "Patio Door", "Glass Door", "Sliding Door Repair",
+                "Door Solutions", "Sliding Door Services", "Door Systems"],
+        "suffixes": ["Pros", "Experts", "Services", "Repair", "Solutions", "Specialists",
+                    "Company", "Team", "Group", "Co"]
+    },
+    "Towing Service": {
+        "prefixes": ["24/7", "Emergency", "Fast", "Quick", "Reliable", "Rapid", "Express",
+                    "Premier", "Professional", "Roadside", "Mobile", "Swift"],
+        "core": ["Towing", "Tow Service", "Auto Towing", "Vehicle Towing", "Roadside Assistance",
+                "Towing & Recovery", "Tow Truck Service"],
+        "suffixes": ["Pros", "Services", "Company", "Solutions", "Team", "Group",
+                    "Specialists", "Experts", "Co", "Inc"]
+    },
+    "Air Duct Cleaning": {
+        "prefixes": ["Professional", "Expert", "Premier", "Elite", "Quality", "Certified",
+                    "Advanced", "Superior", "Clean", "Fresh", "Pure", "Healthy"],
+        "core": ["Air Duct Cleaning", "Duct Cleaning", "HVAC Cleaning", "Air Quality",
+                "Vent Cleaning", "Duct Services", "Indoor Air Solutions"],
+        "suffixes": ["Pros", "Experts", "Services", "Specialists", "Solutions", "Company",
+                    "Team", "Group", "Associates", "Co"]
+    }
+}
 
-BUSINESS_TYPES = [
-    "Services", "Solutions", "Group", "Associates", "Company", "Corporation",
-    "Enterprises", "Partners", "Consulting", "Agency", "Center", "Hub", "Shop",
-    "Store", "Outlet", "Market", "Emporium", "Gallery", "Studio", "Office",
-    "Clinic", "Practice", "Firm", "Workshop", "Boutique", "Depot"
-]
-
-def generate_business_name():
-    """Generate a random anonymous business name that hasn't been used before"""
+def generate_business_name(service_type):
+    """Generate a service-specific anonymous business name that hasn't been used before"""
     max_attempts = 1000  # Prevent infinite loop
     attempts = 0
 
+    if service_type not in SERVICE_NAMES:
+        service_type = "Locksmith"  # Default fallback
+
+    service_data = SERVICE_NAMES[service_type]
+
     while attempts < max_attempts:
-        prefix = random.choice(BUSINESS_PREFIXES)
-        business_type = random.choice(BUSINESS_TYPES)
-        name = f"{prefix} {business_type}"
+        # Randomly choose format:
+        # Format 1: Prefix + Core (e.g., "24/7 Locksmith")
+        # Format 2: Prefix + Core + Suffix (e.g., "24/7 Lock Services Pros")
+        # Format 3: Core + Suffix (e.g., "Lock & Key Services")
+
+        format_choice = random.randint(1, 3)
+
+        if format_choice == 1:
+            prefix = random.choice(service_data["prefixes"])
+            core = random.choice(service_data["core"])
+            name = f"{prefix} {core}"
+        elif format_choice == 2:
+            prefix = random.choice(service_data["prefixes"])
+            core = random.choice(service_data["core"])
+            suffix = random.choice(service_data["suffixes"])
+            name = f"{prefix} {core} {suffix}"
+        else:
+            core = random.choice(service_data["core"])
+            suffix = random.choice(service_data["suffixes"])
+            name = f"{core} {suffix}"
 
         # Check if this name has been used before
         if not db.is_business_name_used(name):
@@ -42,11 +101,11 @@ def generate_business_name():
 
         attempts += 1
 
-    # If all combinations are exhausted, add a suffix
-    prefix = random.choice(BUSINESS_PREFIXES)
-    business_type = random.choice(BUSINESS_TYPES)
-    suffix = random.randint(1, 9999)
-    return f"{prefix} {business_type} #{suffix}"
+    # If all combinations are exhausted, add a numeric suffix
+    prefix = random.choice(service_data["prefixes"])
+    core = random.choice(service_data["core"])
+    suffix = random.randint(100, 999)
+    return f"{prefix} {core} {suffix}"
 
 def fetch_commercial_addresses(city, state, count):
     """
@@ -172,11 +231,16 @@ def generate_listings():
         phone_number = data.get('phone_number')
         city = data.get('city')
         state = data.get('state')
+        service_type = data.get('service_type')
         count = int(data.get('count', 30))
 
         # Validate inputs
-        if not all([phone_number, city, state]):
-            return jsonify({'error': 'Missing required fields'}), 400
+        if not all([phone_number, city, state, service_type]):
+            return jsonify({'error': 'Missing required fields (phone, city, state, service)'}), 400
+
+        # Validate service type
+        if service_type not in SERVICE_NAMES:
+            return jsonify({'error': f'Invalid service type. Must be one of: {", ".join(SERVICE_NAMES.keys())}'}), 400
 
         if count < 1 or count > 100:
             return jsonify({'error': 'Count must be between 1 and 100'}), 400
@@ -209,13 +273,13 @@ def generate_listings():
             print(f"Warning: Only found {len(unique_locations)} unique addresses out of {count} requested")
 
         # Create a new run record in the database
-        run_id = db.create_run(phone_number, city, state, count, len(unique_locations))
+        run_id = db.create_run(phone_number, city, state, service_type, count, len(unique_locations))
 
         # Generate listings with unique business names
         listings = []
         for i, location in enumerate(unique_locations[:count]):
-            # Generate unique business name
-            business_name = generate_business_name()
+            # Generate unique business name for the service type
+            business_name = generate_business_name(service_type)
 
             listing = {
                 'id': i + 1,

@@ -32,6 +32,7 @@ def init_database():
                 phone_number TEXT NOT NULL,
                 city TEXT NOT NULL,
                 state TEXT NOT NULL,
+                service_type TEXT NOT NULL,
                 requested_count INTEGER NOT NULL,
                 generated_count INTEGER NOT NULL
             )
@@ -95,14 +96,14 @@ def init_database():
             ON used_addresses(city, state)
         ''')
 
-def create_run(phone_number, city, state, requested_count, generated_count):
+def create_run(phone_number, city, state, service_type, requested_count, generated_count):
     """Create a new run record and return its ID"""
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO runs (phone_number, city, state, requested_count, generated_count)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (phone_number, city, state, requested_count, generated_count))
+            INSERT INTO runs (phone_number, city, state, service_type, requested_count, generated_count)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (phone_number, city, state, service_type, requested_count, generated_count))
         return cursor.lastrowid
 
 def is_business_name_used(name):
@@ -252,7 +253,7 @@ def get_statistics():
 
         # Most recent run
         cursor.execute('''
-            SELECT timestamp, city, state, generated_count
+            SELECT timestamp, city, state, service_type, generated_count
             FROM runs
             ORDER BY timestamp DESC
             LIMIT 1

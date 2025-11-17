@@ -59,18 +59,25 @@
             color: #333;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s;
+            background-color: white;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        .form-group select {
+            cursor: pointer;
         }
 
         .form-row {
@@ -380,6 +387,7 @@
                             <tr>
                                 <th>Run ID</th>
                                 <th>Date/Time</th>
+                                <th>Service</th>
                                 <th>City</th>
                                 <th>State</th>
                                 <th>Requested</th>
@@ -397,6 +405,19 @@
 
         <div class="card">
             <form id="listingsForm">
+                <div class="form-group">
+                    <label for="service">Service Type <span style="color: #dc3545;">*</span></label>
+                    <select id="service" name="service" required>
+                        <option value="">-- Select Service Type --</option>
+                        <option value="Locksmith">Locksmith</option>
+                        <option value="Chimney Cleaning">Chimney Cleaning</option>
+                        <option value="Garage Door">Garage Door</option>
+                        <option value="Sliding Doors">Sliding Doors</option>
+                        <option value="Towing Service">Towing Service</option>
+                        <option value="Air Duct Cleaning">Air Duct Cleaning</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
                     <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567" required>
@@ -536,7 +557,7 @@
             historyTable.innerHTML = '';
 
             if (runs.length === 0) {
-                historyTable.innerHTML = '<tr><td colspan="7" style="text-align: center;">No previous runs found</td></tr>';
+                historyTable.innerHTML = '<tr><td colspan="8" style="text-align: center;">No previous runs found</td></tr>';
                 return;
             }
 
@@ -546,6 +567,7 @@
                 row.innerHTML = `
                     <td>${run.id}</td>
                     <td>${date.toLocaleString()}</td>
+                    <td><strong>${run.service_type}</strong></td>
                     <td>${run.city}</td>
                     <td>${run.state}</td>
                     <td>${run.requested_count}</td>
@@ -599,6 +621,7 @@
             e.preventDefault();
 
             const formData = {
+                service_type: document.getElementById('service').value,
                 phone_number: document.getElementById('phone').value,
                 city: document.getElementById('city').value,
                 state: document.getElementById('state').value,
