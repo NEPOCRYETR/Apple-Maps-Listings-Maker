@@ -235,6 +235,81 @@
             opacity: 0.9;
         }
 
+        .global-stats {
+            margin-bottom: 20px;
+        }
+
+        .global-stats h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #1976d2;
+        }
+
+        .info-box strong {
+            color: #0d47a1;
+        }
+
+        .history-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .history-table {
+            margin-top: 15px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -259,6 +334,65 @@
         <div class="header">
             <h1>Apple Maps Listings Generator</h1>
             <p>Generate commercial business listings for surveys and data analysis</p>
+        </div>
+
+        <!-- Global Statistics Card -->
+        <div class="card" id="globalStatsCard">
+            <div class="section-header">
+                <h3>Database Statistics</h3>
+                <div class="btn-group">
+                    <button class="btn-secondary" id="viewHistoryBtn">View History</button>
+                    <button class="btn-danger" id="clearHistoryBtn">Clear All Data</button>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Duplicate Prevention Active:</strong> All business names and commercial addresses are tracked to ensure uniqueness across all runs.
+            </div>
+
+            <div class="stats" id="globalStats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRuns">0</div>
+                    <div class="stat-label">Total Runs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="uniqueNames">0</div>
+                    <div class="stat-label">Unique Business Names</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="uniqueAddresses">0</div>
+                    <div class="stat-label">Unique Addresses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalGenerated">0</div>
+                    <div class="stat-label">Total Listings Generated</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section" id="historySection">
+            <div class="card">
+                <h3>Previous Runs</h3>
+                <div class="table-container history-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Run ID</th>
+                                <th>Date/Time</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Requested</th>
+                                <th>Generated</th>
+                                <th>Phone</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            <!-- History will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div class="card">
@@ -353,7 +487,113 @@
         const cityNameEl = document.getElementById('cityName');
         const stateNameEl = document.getElementById('stateName');
 
+        // Global statistics elements
+        const totalRunsEl = document.getElementById('totalRuns');
+        const uniqueNamesEl = document.getElementById('uniqueNames');
+        const uniqueAddressesEl = document.getElementById('uniqueAddresses');
+        const totalGeneratedEl = document.getElementById('totalGenerated');
+        const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const historySection = document.getElementById('historySection');
+        const historyTable = document.getElementById('historyTable');
+
         let currentListings = [];
+
+        // Load statistics on page load
+        loadStatistics();
+
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/statistics');
+                const data = await response.json();
+
+                if (data.success) {
+                    const stats = data.statistics;
+                    totalRunsEl.textContent = stats.total_runs;
+                    uniqueNamesEl.textContent = stats.total_unique_business_names;
+                    uniqueAddressesEl.textContent = stats.total_unique_addresses;
+                    totalGeneratedEl.textContent = stats.total_listings_generated;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayHistory(data.runs);
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        function displayHistory(runs) {
+            historyTable.innerHTML = '';
+
+            if (runs.length === 0) {
+                historyTable.innerHTML = '<tr><td colspan="7" style="text-align: center;">No previous runs found</td></tr>';
+                return;
+            }
+
+            runs.forEach(run => {
+                const row = document.createElement('tr');
+                const date = new Date(run.timestamp);
+                row.innerHTML = `
+                    <td>${run.id}</td>
+                    <td>${date.toLocaleString()}</td>
+                    <td>${run.city}</td>
+                    <td>${run.state}</td>
+                    <td>${run.requested_count}</td>
+                    <td>${run.generated_count}</td>
+                    <td>${run.phone_number}</td>
+                `;
+                historyTable.appendChild(row);
+            });
+
+            historySection.style.display = 'block';
+            historySection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        viewHistoryBtn.addEventListener('click', () => {
+            if (historySection.style.display === 'none' || !historySection.style.display) {
+                loadHistory();
+            } else {
+                historySection.style.display = 'none';
+            }
+        });
+
+        clearHistoryBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to clear ALL historical data? This action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/clear-history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('All historical data has been cleared successfully!');
+                    loadStatistics();
+                    historySection.style.display = 'none';
+                } else {
+                    alert('Error clearing data: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error clearing history:', error);
+                alert('Error clearing data: ' + error.message);
+            }
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -405,6 +645,8 @@
                     displayResults(data.listings, formData.city, formData.state);
                     progressSection.style.display = 'none';
                     progressFill.style.width = '0%';
+                    // Refresh statistics after generating new listings
+                    loadStatistics();
                 }, 500);
 
             } catch (error) {

@@ -11,6 +11,9 @@ A web application that generates commercial business listings with real addresse
 - **CSV Export**: Download results as CSV for easy data analysis
 - **Progress Tracking**: Visual feedback during listing generation
 - **Statistics Display**: View summary statistics of generated listings
+- **Duplicate Prevention**: Automatic tracking to ensure no business names or addresses are repeated across runs
+- **Run History**: View all previous generation runs with complete details
+- **Persistent Database**: SQLite database stores all historical data across sessions
 
 ## How It Works
 
@@ -23,13 +26,16 @@ A web application that generates commercial business listings with real addresse
 2. System processes:
    - Queries OpenStreetMap Overpass API for commercial locations
    - Retrieves real commercial addresses (shops, offices, restaurants, etc.)
-   - Generates anonymous business names for each location
+   - **Checks database for duplicate addresses** and filters them out
+   - Generates unique anonymous business names that haven't been used before
+   - **Saves all data to persistent database** for future duplicate checking
    - Combines data with provided phone number
 
 3. Output:
    - Table view of all listings
    - Each listing includes: ID, Business Name, Address, Phone Number
    - Download as CSV file
+   - **All data stored in history for tracking**
 
 ## Installation
 
@@ -63,31 +69,57 @@ http://localhost:5000
 
 ## Usage
 
-1. **Fill in the form**:
+1. **View Database Statistics** (top of page):
+   - See total runs, unique business names, unique addresses
+   - Monitor how many listings have been generated historically
+   - Access "View History" to see all previous runs
+   - Use "Clear All Data" to reset the database (careful!)
+
+2. **Fill in the form**:
    - Enter a phone number (e.g., +1 (555) 123-4567)
    - Enter city name (e.g., New York)
    - Enter state name (e.g., New York)
    - Specify number of locations (1-100)
 
-2. **Click "Generate Listings"**:
+3. **Click "Generate Listings"**:
+   - System automatically checks for duplicate names/addresses
    - Watch the progress bar as the system works
    - Results will appear automatically when ready
+   - Statistics update in real-time
 
-3. **View Results**:
+4. **View Results**:
    - See statistics summary at the top
    - Browse listings in the table
    - Click "Download CSV" to export data
+   - All listings are saved to history automatically
+
+5. **View History** (optional):
+   - Click "View History" button to see all previous runs
+   - Each run shows timestamp, location, counts, and phone number
+   - Use this to track your generation history
 
 ## Technical Details
 
 ### Backend (app.py)
 - **Framework**: Flask
 - **API**: OpenStreetMap Overpass API
+- **Database**: SQLite with contextual connections
 - **Features**:
   - Commercial address fetching
-  - Anonymous name generation
+  - Anonymous name generation with uniqueness checking
+  - Duplicate prevention for addresses and names
   - Fallback data for API failures
   - CORS enabled for development
+  - Complete run history tracking
+
+### Database (database.py)
+- **Storage**: SQLite (listings_history.db)
+- **Tables**:
+  - `runs`: Tracks each generation session
+  - `used_business_names`: All unique business names ever generated
+  - `used_addresses`: All unique addresses ever used (with coordinates)
+  - `generated_listings`: Complete history of all listings
+- **Indexes**: Optimized for fast duplicate checking
 
 ### Frontend (templates/index.html)
 - **Tech**: HTML5, CSS3, Vanilla JavaScript
@@ -102,10 +134,30 @@ http://localhost:5000
 - **Overpass API**: Query service for OSM data
 - No API key required
 
+## Duplicate Prevention System
+
+The application maintains a persistent SQLite database that tracks:
+
+1. **Business Names**: Every generated name is checked against the database before use
+   - 600+ possible unique combinations (26 prefixes × 24 types)
+   - If all combinations exhausted, adds numeric suffix
+   - Guarantees no duplicate names across all runs
+
+2. **Commercial Addresses**: Every address is verified for uniqueness
+   - Tracks by latitude/longitude coordinates
+   - Also tracks by full address text as fallback
+   - Automatically filters out previously used locations
+
+3. **Run History**: Complete audit trail of all generations
+   - Timestamp of each run
+   - Input parameters (phone, city, state, count)
+   - All listings generated in each run
+   - Viewable through the dashboard
+
 ## API Endpoints
 
 ### POST /api/generate
-Generates business listings based on input parameters.
+Generates business listings with duplicate checking.
 
 **Request Body**:
 ```json
@@ -122,6 +174,7 @@ Generates business listings based on input parameters.
 {
   "success": true,
   "count": 30,
+  "run_id": 5,
   "listings": [
     {
       "id": 1,
@@ -134,6 +187,49 @@ Generates business listings based on input parameters.
   ]
 }
 ```
+
+### GET /api/statistics
+Returns overall database statistics.
+
+**Response**:
+```json
+{
+  "success": true,
+  "statistics": {
+    "total_runs": 15,
+    "total_unique_business_names": 450,
+    "total_unique_addresses": 450,
+    "total_listings_generated": 450
+  }
+}
+```
+
+### GET /api/history
+Returns all previous generation runs.
+
+**Response**:
+```json
+{
+  "success": true,
+  "runs": [
+    {
+      "id": 1,
+      "timestamp": "2025-11-17 10:30:00",
+      "phone_number": "+1 (555) 123-4567",
+      "city": "New York",
+      "state": "New York",
+      "requested_count": 30,
+      "generated_count": 30
+    }
+  ]
+}
+```
+
+### GET /api/history/{run_id}
+Returns detailed information about a specific run.
+
+### POST /api/clear-history
+Clears all historical data from the database (use with caution!).
 
 ## Use Cases
 

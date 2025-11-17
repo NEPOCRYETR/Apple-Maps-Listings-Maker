@@ -3,9 +3,13 @@ from flask_cors import CORS
 import requests
 import random
 import time
+import database as db
 
 app = Flask(__name__)
 CORS(app)
+
+# Initialize database on startup
+db.init_database()
 
 # List of business name prefixes and suffixes for generating anonymous names
 BUSINESS_PREFIXES = [
@@ -23,10 +27,26 @@ BUSINESS_TYPES = [
 ]
 
 def generate_business_name():
-    """Generate a random anonymous business name"""
+    """Generate a random anonymous business name that hasn't been used before"""
+    max_attempts = 1000  # Prevent infinite loop
+    attempts = 0
+
+    while attempts < max_attempts:
+        prefix = random.choice(BUSINESS_PREFIXES)
+        business_type = random.choice(BUSINESS_TYPES)
+        name = f"{prefix} {business_type}"
+
+        # Check if this name has been used before
+        if not db.is_business_name_used(name):
+            return name
+
+        attempts += 1
+
+    # If all combinations are exhausted, add a suffix
     prefix = random.choice(BUSINESS_PREFIXES)
     business_type = random.choice(BUSINESS_TYPES)
-    return f"{prefix} {business_type}"
+    suffix = random.randint(1, 9999)
+    return f"{prefix} {business_type} #{suffix}"
 
 def fetch_commercial_addresses(city, state, count):
     """
@@ -146,7 +166,7 @@ def index():
 
 @app.route('/api/generate', methods=['POST'])
 def generate_listings():
-    """API endpoint to generate business listings"""
+    """API endpoint to generate business listings with duplicate checking"""
     try:
         data = request.json
         phone_number = data.get('phone_number')
@@ -161,27 +181,129 @@ def generate_listings():
         if count < 1 or count > 100:
             return jsonify({'error': 'Count must be between 1 and 100'}), 400
 
-        # Fetch commercial addresses
-        locations = fetch_commercial_addresses(city, state, count)
+        # Fetch commercial addresses (request more than needed to account for duplicates)
+        all_locations = fetch_commercial_addresses(city, state, count * 3)
 
-        # Generate listings with anonymous business names
+        # Filter out addresses that have already been used
+        unique_locations = []
+        for location in all_locations:
+            lat = location.get('lat', 0)
+            lon = location.get('lon', 0)
+            address = location.get('address', '')
+
+            # Check if address has been used before
+            if lat != 0 and lon != 0:
+                if not db.is_address_used(lat, lon):
+                    unique_locations.append(location)
+            else:
+                # For fallback addresses without coordinates, check by text
+                if not db.is_address_used_by_text(address, city, state):
+                    unique_locations.append(location)
+
+            # Stop when we have enough unique locations
+            if len(unique_locations) >= count:
+                break
+
+        # If we don't have enough unique locations, notify the user
+        if len(unique_locations) < count:
+            print(f"Warning: Only found {len(unique_locations)} unique addresses out of {count} requested")
+
+        # Create a new run record in the database
+        run_id = db.create_run(phone_number, city, state, count, len(unique_locations))
+
+        # Generate listings with unique business names
         listings = []
-        for i, location in enumerate(locations[:count]):
-            listings.append({
+        for i, location in enumerate(unique_locations[:count]):
+            # Generate unique business name
+            business_name = generate_business_name()
+
+            listing = {
                 'id': i + 1,
-                'name': generate_business_name(),
+                'name': business_name,
                 'address': location['address'],
                 'phone': phone_number,
                 'latitude': location.get('lat', 0),
                 'longitude': location.get('lon', 0)
-            })
+            }
+            listings.append(listing)
+
+            # Save to database
+            db.add_business_name(business_name, run_id)
+            db.add_address(
+                location['address'],
+                location.get('lat', 0),
+                location.get('lon', 0),
+                city,
+                state,
+                run_id
+            )
+            db.save_listing(
+                run_id,
+                business_name,
+                location['address'],
+                phone_number,
+                location.get('lat', 0),
+                location.get('lon', 0)
+            )
 
         return jsonify({
             'success': True,
             'count': len(listings),
-            'listings': listings
+            'listings': listings,
+            'run_id': run_id
         })
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/history', methods=['GET'])
+def get_history():
+    """API endpoint to get all previous runs"""
+    try:
+        runs = db.get_all_runs()
+        return jsonify({
+            'success': True,
+            'runs': runs
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/history/<int:run_id>', methods=['GET'])
+def get_run_details(run_id):
+    """API endpoint to get detailed information about a specific run"""
+    try:
+        details = db.get_run_details(run_id)
+        if not details:
+            return jsonify({'error': 'Run not found'}), 404
+
+        return jsonify({
+            'success': True,
+            'details': details
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/statistics', methods=['GET'])
+def get_statistics():
+    """API endpoint to get overall statistics"""
+    try:
+        stats = db.get_statistics()
+        return jsonify({
+            'success': True,
+            'statistics': stats
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/clear-history', methods=['POST'])
+def clear_history():
+    """API endpoint to clear all historical data (use with caution!)"""
+    try:
+        db.clear_all_data()
+        return jsonify({
+            'success': True,
+            'message': 'All historical data has been cleared'
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
