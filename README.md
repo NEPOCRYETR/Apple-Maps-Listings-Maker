@@ -116,8 +116,10 @@ http://localhost:5000
 - **Database**: SQLite with contextual connections
 - **Features**:
   - Commercial address fetching
-  - **Service-specific business name generation** with 6 different service types
-  - Each service has unique prefixes, core names, and suffixes
+  - **Advanced service-specific business name generation** with 6 different service types
+  - Each service has unique prefixes, core names, suffixes, and location elements
+  - 6 different name format patterns (location-based, prefix-based, compound names)
+  - Creative names inspired by real industry patterns (e.g., "Metro Towing Near You", "FlueMaster Cleaners")
   - Anonymous name generation with uniqueness checking
   - Duplicate prevention for addresses and names
   - Fallback data for API failures
@@ -151,14 +153,16 @@ http://localhost:5000
 The application maintains a persistent SQLite database that tracks:
 
 1. **Business Names**: Every generated name is checked against the database before use
-   - Service-specific name generation with multiple formats
-   - Thousands of possible unique combinations per service type
-   - Each service has tailored prefixes, core names, and suffixes
-   - Examples:
-     - **Locksmith**: "24/7 Lock & Key Services", "Emergency Locksmith Pros"
-     - **Chimney Cleaning**: "Professional Chimney Sweep", "Master Chimney Services"
-     - **Garage Door**: "Quick Garage Door Repair", "Premier Door Solutions"
-     - **Towing Service**: "Fast Towing & Recovery", "24/7 Roadside Assistance"
+   - Service-specific name generation with 6 different format patterns
+   - Tens of thousands of possible unique combinations per service type
+   - Each service has tailored prefixes, core names, suffixes, and location elements
+   - Examples of generated names:
+     - **Locksmith**: "Citadel Lock & Key Services", "Metro Security Solutions Near You", "Guardian Downtown Locksmith"
+     - **Chimney Cleaning**: "Summit Chimney Sweep Care", "FlueMaster Cleaners", "Elite Hearth Sweep Services"
+     - **Garage Door**: "Premier Garage Door Masters", "Quick Fix Overhead Door Repairs", "City Garage Door Services"
+     - **Towing Service**: "Metro Towing Pros", "Fast Roadside Assistance Near Me", "Express Downtown Towing"
+     - **Air Duct Cleaning**: "FreshFlow Duct Services", "PureBreeze Air Duct Cleaning Near You", "CleanVent Solutions"
+     - **Sliding Doors**: "Precision Patio Door Services", "Elite Sliding Glass Specialists", "Custom Door Solutions"
    - If combinations exhausted, adds numeric suffix
    - Guarantees no duplicate names across all runs
 
@@ -200,11 +204,19 @@ Generates business listings with duplicate checking.
   "listings": [
     {
       "id": 1,
-      "name": "24/7 Lock & Key Services",
+      "name": "Guardian Downtown Lock & Key Services",
       "address": "123 Main Street, New York, New York 10001",
       "phone": "+1 (555) 123-4567",
       "latitude": 40.7128,
       "longitude": -74.0060
+    },
+    {
+      "id": 2,
+      "name": "Metro Security Solutions Near You",
+      "address": "456 Broadway, New York, New York 10012",
+      "phone": "+1 (555) 123-4567",
+      "latitude": 40.7210,
+      "longitude": -73.9987
     }
   ]
 }

@@ -14,52 +14,70 @@ db.init_database()
 # Service-specific business name components
 SERVICE_NAMES = {
     "Locksmith": {
-        "prefixes": ["24/7", "Emergency", "Quick", "Reliable", "Master", "Professional", "Expert",
-                    "Secure", "Swift", "Premier", "Elite", "Trusted", "Advanced", "Precision"],
-        "core": ["Lock & Key", "Locksmith", "Security", "Lock Services", "Key Services",
-                "Lock Solutions", "Security Systems", "Lock & Security"],
-        "suffixes": ["Pros", "Experts", "Services", "Solutions", "Specialists", "Team",
-                    "Company", "Group", "Associates", "Co"]
+        "prefixes": ["Secure", "Iron Gate", "Fortress", "Sentry", "Guardian", "Citadel", "Ironclad",
+                    "Fortify", "Shield", "Centurion", "Sentinel", "SafeGuard", "KeyMaster", "LockPro",
+                    "Access Control", "SecureKey", "Premier", "Elite", "Professional", "Expert"],
+        "core": ["Lock & Key", "Locksmith", "Lock Services", "Key Services", "Security Systems",
+                "Lock Solutions", "Lock & Safe", "Security Services", "Lock Repair", "Key Rescue",
+                "Lock Change", "Lock Masters", "Security Solutions", "Access Systems"],
+        "suffixes": ["Services", "Solutions", "Pros", "Masters", "Experts", "Specialists",
+                    "Near You", "Near Me", "Company", "Group", "Team", "Inc", "LLC"],
+        "locations": ["Downtown", "Uptown", "Midtown", "Metro", "City", "Central", "District",
+                     "Plaza", "Square", "Avenue", "Street", "Boulevard", "Park"]
     },
     "Chimney Cleaning": {
-        "prefixes": ["Professional", "Master", "Expert", "Premier", "Elite", "Certified",
-                    "Quality", "Top", "Superior", "Advanced", "Reliable", "Trusted"],
-        "core": ["Chimney Sweep", "Chimney Cleaning", "Chimney Services", "Chimney Care",
-                "Fireplace & Chimney", "Chimney Maintenance", "Chimney Solutions"],
-        "suffixes": ["Pros", "Experts", "Services", "Specialists", "Company", "Team",
-                    "Solutions", "Group", "Associates", "Co"]
+        "prefixes": ["Clean", "Clear", "Pure", "Pristine", "Elite", "Master", "Summit", "Guardian",
+                    "Swift", "Precision", "A1", "FlueMaster", "ChimneyShield", "CleanFlue", "FlueBright",
+                    "ClearFlame", "SkyHigh", "Guardian", "SwiftPath", "FlueGuard", "Professional"],
+        "core": ["Chimney Sweep", "Chimney Services", "Flue Cleaners", "Hearth Care", "Chimney Care",
+                "Flue Sweep", "Chimney Cleaners", "Hearth Sweep", "Chimney Shine", "Flue Masters",
+                "Sweep Services", "Chimney Maintenance"],
+        "suffixes": ["Services", "Pros", "Care", "Cleaners", "Masters", "Specialists", "Solutions",
+                    "Company", "Team", "Experts", "Group"],
+        "locations": ["Summit", "Highland", "Ridgeline", "Skyline", "Valley", "Creek", "Mountain"]
     },
     "Garage Door": {
-        "prefixes": ["24/7", "Emergency", "Quick", "Reliable", "Professional", "Expert",
-                    "Premier", "Elite", "Precision", "Quality", "Superior", "Advanced"],
-        "core": ["Garage Door", "Garage Door Repair", "Garage Door Services", "Door Solutions",
-                "Overhead Door", "Garage Door Systems", "Door & Opener"],
-        "suffixes": ["Pros", "Experts", "Services", "Repair", "Solutions", "Specialists",
-                    "Company", "Team", "Group", "Co"]
+        "prefixes": ["Reliable", "Premier", "Expert", "Quick Fix", "Precision", "Apex", "Prime",
+                    "Skillful", "A+", "Speedy", "Dependable", "Custom", "Accessible", "Amazing",
+                    "Professional", "Elite", "Superior"],
+        "core": ["Garage Door", "Overhead Door", "Garage Door Repair", "Garage Door Services",
+                "Gate and Door", "Garage Doors", "Door Services", "Door Installations",
+                "Garage Door Care", "Door Solutions", "Garage Door Systems"],
+        "suffixes": ["Services", "Masters", "Repairs", "Fixers", "Technicians", "Pros", "Solutions",
+                    "Installations", "Care", "Specialists", "Experts", "Company"],
+        "locations": ["City", "Metro", "Local", "Area", "Downtown", "District", "Central"]
     },
     "Sliding Doors": {
-        "prefixes": ["Professional", "Expert", "Premier", "Elite", "Quality", "Precision",
-                    "Custom", "Modern", "Superior", "Advanced", "Reliable", "Master"],
-        "core": ["Sliding Door", "Patio Door", "Glass Door", "Sliding Door Repair",
-                "Door Solutions", "Sliding Door Services", "Door Systems"],
-        "suffixes": ["Pros", "Experts", "Services", "Repair", "Solutions", "Specialists",
-                    "Company", "Team", "Group", "Co"]
+        "prefixes": ["Premier", "Elite", "Custom", "Precision", "Expert", "Professional", "Quality",
+                    "Master", "Superior", "Advanced", "Modern", "Perfect", "Smooth", "Glide"],
+        "core": ["Sliding Door", "Patio Door", "Glass Door", "Door Solutions", "Sliding Systems",
+                "Door Services", "Sliding Door Repair", "Door Installation", "Sliding Glass",
+                "Door Specialists"],
+        "suffixes": ["Services", "Pros", "Solutions", "Repair", "Specialists", "Masters", "Experts",
+                    "Installation", "Care", "Company", "Team"],
+        "locations": ["City", "Metro", "Local", "Downtown", "Central", "District"]
     },
     "Towing Service": {
-        "prefixes": ["24/7", "Emergency", "Fast", "Quick", "Reliable", "Rapid", "Express",
-                    "Premier", "Professional", "Roadside", "Mobile", "Swift"],
-        "core": ["Towing", "Tow Service", "Auto Towing", "Vehicle Towing", "Roadside Assistance",
-                "Towing & Recovery", "Tow Truck Service"],
-        "suffixes": ["Pros", "Services", "Company", "Solutions", "Team", "Group",
-                    "Specialists", "Experts", "Co", "Inc"]
+        "prefixes": ["Fast", "Quick", "Rapid", "Swift", "Express", "Metro", "City", "Reliable",
+                    "Premier", "24/7", "Emergency", "Roadside", "Mobile", "All-City"],
+        "core": ["Towing", "Tow Service", "Towing Service", "Roadside Assistance", "Auto Towing",
+                "Towing & Recovery", "Tow Truck Service", "Vehicle Recovery", "Emergency Towing",
+                "Tow Pros", "Towing Solutions"],
+        "suffixes": ["Services", "Pros", "Masters", "Solutions", "Experts", "Company", "Near You",
+                    "Near Me", "For You", "24/7", "Inc", "Team", "Group"],
+        "locations": ["Downtown", "Metro", "City", "Central", "District", "Uptown", "Midtown",
+                     "Riverside", "Lakeside", "Highway", "Interstate"]
     },
     "Air Duct Cleaning": {
-        "prefixes": ["Professional", "Expert", "Premier", "Elite", "Quality", "Certified",
-                    "Advanced", "Superior", "Clean", "Fresh", "Pure", "Healthy"],
-        "core": ["Air Duct Cleaning", "Duct Cleaning", "HVAC Cleaning", "Air Quality",
-                "Vent Cleaning", "Duct Services", "Indoor Air Solutions"],
-        "suffixes": ["Pros", "Experts", "Services", "Specialists", "Solutions", "Company",
-                    "Team", "Group", "Associates", "Co"]
+        "prefixes": ["Fresh", "Clean", "Clear", "Pure", "Prime", "Apex", "Elite", "Master", "Pro",
+                    "BreezeClear", "FreshFlow", "PureStream", "CleanVent", "AirPath", "ClearVent",
+                    "FreshBreeze", "PureBreeze", "CleanAir", "AirMaster"],
+        "core": ["Duct Cleaning", "Air Duct Services", "Duct & Dryer Clean", "Vent Cleaning",
+                "HVAC Cleaning", "Air Duct Cleaning", "Ventilation Services", "Duct Solutions",
+                "Airflow Services", "Duct Services", "Air Quality Services"],
+        "suffixes": ["Services", "Solutions", "Cleaners", "Pros", "Specialists", "Experts",
+                    "Near Me", "Near You", "Company", "Team", "Masters"],
+        "locations": ["Metro", "City", "Local", "Area", "Central", "District"]
     }
 }
 
@@ -74,12 +92,15 @@ def generate_business_name(service_type):
     service_data = SERVICE_NAMES[service_type]
 
     while attempts < max_attempts:
-        # Randomly choose format:
-        # Format 1: Prefix + Core (e.g., "24/7 Locksmith")
-        # Format 2: Prefix + Core + Suffix (e.g., "24/7 Lock Services Pros")
+        # Randomly choose format with more variety:
+        # Format 1: Prefix + Core (e.g., "Elite Locksmith")
+        # Format 2: Prefix + Core + Suffix (e.g., "Elite Lock Services Pros")
         # Format 3: Core + Suffix (e.g., "Lock & Key Services")
+        # Format 4: Location + Core (e.g., "Metro Towing")
+        # Format 5: Location + Core + Suffix (e.g., "Metro Towing Services")
+        # Format 6: Prefix + Location + Core (e.g., "Premier Downtown Locksmith")
 
-        format_choice = random.randint(1, 3)
+        format_choice = random.randint(1, 6)
 
         if format_choice == 1:
             prefix = random.choice(service_data["prefixes"])
@@ -90,10 +111,24 @@ def generate_business_name(service_type):
             core = random.choice(service_data["core"])
             suffix = random.choice(service_data["suffixes"])
             name = f"{prefix} {core} {suffix}"
-        else:
+        elif format_choice == 3:
             core = random.choice(service_data["core"])
             suffix = random.choice(service_data["suffixes"])
             name = f"{core} {suffix}"
+        elif format_choice == 4:
+            location = random.choice(service_data["locations"])
+            core = random.choice(service_data["core"])
+            name = f"{location} {core}"
+        elif format_choice == 5:
+            location = random.choice(service_data["locations"])
+            core = random.choice(service_data["core"])
+            suffix = random.choice(service_data["suffixes"])
+            name = f"{location} {core} {suffix}"
+        else:  # format_choice == 6
+            prefix = random.choice(service_data["prefixes"])
+            location = random.choice(service_data["locations"])
+            core = random.choice(service_data["core"])
+            name = f"{prefix} {location} {core}"
 
         # Check if this name has been used before
         if not db.is_business_name_used(name):
