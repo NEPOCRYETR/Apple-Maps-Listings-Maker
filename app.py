@@ -224,6 +224,11 @@ def fetch_commercial_addresses(city, state, count):
                 'address': address
             })
 
+        # If we didn't find any locations, use fallback
+        if len(locations) == 0:
+            print(f"No commercial addresses found via Overpass API for {city}, {state}. Using fallback addresses.")
+            return generate_fallback_addresses(city, state, count)
+
         return locations
 
     except Exception as e:
