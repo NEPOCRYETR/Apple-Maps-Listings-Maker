@@ -142,6 +142,41 @@ def generate_business_name(service_type):
     suffix = random.randint(100, 999)
     return f"{prefix} {core} {suffix}"
 
+def reverse_geocode(lat, lon):
+    """
+    Use Nominatim reverse geocoding to get address from coordinates
+    """
+    try:
+        # Nominatim API endpoint
+        nominatim_url = "https://nominatim.openstreetmap.org/reverse"
+        params = {
+            'format': 'json',
+            'lat': lat,
+            'lon': lon,
+            'addressdetails': 1
+        }
+        headers = {
+            'User-Agent': 'AppleMapsListingsMaker/1.0'  # Required by Nominatim usage policy
+        }
+
+        response = requests.get(nominatim_url, params=params, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if 'address' in data:
+            addr = data['address']
+            house_number = addr.get('house_number', str(random.randint(100, 9999)))
+            road = addr.get('road') or addr.get('street') or addr.get('pedestrian') or 'Commercial Ave'
+            return house_number, road
+
+        # Fallback if no address found
+        return str(random.randint(100, 9999)), "Commercial Ave"
+
+    except Exception as e:
+        print(f"Reverse geocoding failed: {str(e)}")
+        # Return placeholder on error
+        return str(random.randint(100, 9999)), "Commercial Ave"
+
 def fetch_commercial_addresses(city, state, count):
     """
     Fetch commercial addresses from OpenStreetMap using Overpass API
@@ -205,10 +240,10 @@ def fetch_commercial_addresses(city, state, count):
 
             # If we don't have street info, use reverse geocoding
             if not street:
-                # For demo purposes, generate a placeholder
-                # In production, you'd use Nominatim reverse geocoding
-                street = f"Commercial Ave"
-                house_number = str(random.randint(100, 9999))
+                # Use Nominatim reverse geocoding to get real address
+                house_number, street = reverse_geocode(lat, lon)
+                # Add small delay to respect Nominatim usage policy (max 1 request/second)
+                time.sleep(1.1)
 
             # Build full address
             if house_number and street:
